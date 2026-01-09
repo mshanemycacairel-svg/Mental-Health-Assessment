@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mental Health Self-Assessment</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f4f4; text-align:center; padding: 20px; }
+    #container { max-width: 600px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2);}
+    .question { display:none; margin-bottom:20px; }
+    .question.active { display:block; }
+    button { padding:10px 20px; border:none; border-radius:5px; background:#4CAF50; color:white; cursor:pointer; }
+    #progress { width:100%; background:#ddd; border-radius:5px; margin-bottom:20px; height:20px; }
+    #progressBar { height:100%; width:0%; background:#4CAF50; border-radius:5px; transition: width 0.3s; }
+    #result { display:none; margin-top:20px; }
+    .score-bar { height:20px; border-radius:5px; background:#ddd; margin-top:10px; }
+    .score-fill { height:100%; width:0%; border-radius:5px; transition: width 1s; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h2>Employee Mental Health Self-Assessment</h2>
+    <p>This self-assessment is for informational purposes only and is not a clinical diagnosis.</p>
+    
+    <div id="progress"><div id="progressBar"></div></div>
+    
+    <div id="questions">
+      <!-- Questions will be injected here -->
+    </div>
+    
+    <button id="nextBtn">Start</button>
+    
+    <div id="result">
+      <h3>Your Total Score: <span id="totalScore"></span></h3>
+      <h3>Interpretation: <span id="interpretation"></span></h3>
+      <div class="score-bar">
+        <div class="score-fill" id="scoreFill"></div>
+      </div>
+      <p>This result is for informational purposes only. If you are concerned, please seek professional help.</p>
+      <button onclick="restart()">Restart</button>
+    </div>
+  </div>
+  
+<script>
+const questions = [
+  "I had little interest or pleasure in doing my usual activities",
+  "I felt down, sad, or hopeless",
+  "I felt tired or had little energy",
+  "I had difficulty concentrating on tasks",
+  "I felt nervous, anxious, or on edge",
+  "I was unable to stop or control worrying",
+  "I felt afraid as if something bad might happen",
+  "I found it hard to relax",
+  "I felt emotionally exhausted or drained",
+  "I felt easily irritated or over-reacted to situations"
+];
+
+let currentQ = -1;
+let answers = [];
+
+const questionsDiv = document.getElementById('questions');
+const nextBtn = document.getElementById('nextBtn');
+const progressBar = document.getElementById('progressBar');
+const resultDiv = document.getElementById('result');
+const totalScoreSpan = document.getElementById('totalScore');
+const interpretationSpan = document.getElementById('interpretation');
+const scoreFill = document.getElementById('scoreFill');
+
+// Generate question HTML
+questions.forEach((q, index) => {
+  const div = document.createElement('div');
+  div.className = 'question';
+  div.innerHTML = `<p>${q}</p>
+  <label><input type="radio" name="q${index}" value="0"> 0</label>
+  <label><input type="radio" name="q${index}" value="1"> 1</label>
+  <label><input type="radio" name="q${index}" value="2"> 2</label>
+  <label><input type="radio" name="q${index}" value="3"> 3</label>`;
+  questionsDiv.appendChild(div);
+});
+
+const questionDivs = document.querySelectorAll('.question');
+
+nextBtn.addEventListener('click', () => {
+  if(currentQ >= 0) {
+    const selected = document.querySelector(`input[name="q${currentQ}"]:checked`);
+    if(!selected) { alert("Please select an answer."); return; }
+    answers[currentQ] = parseInt(selected.value);
+  }
+
+  currentQ++;
+  
+  if(currentQ < questions.length) {
+    questionDivs.forEach(q => q.classList.remove('active'));
+    questionDivs[currentQ].classList.add('active');
+    nextBtn.textContent = currentQ === questions.length - 1 ? "Submit" : "Next";
+    progressBar.style.width = `${(currentQ)/(questions.length)*100}%`;
+  } else {
+    showResult();
+  }
+});
+
+function showResult() {
+  const total = answers.reduce((a,b) => a+b, 0);
+  totalScoreSpan.textContent = total;
+  
+  let interp = "";
+  if(total <= 7) interp = "Normal / No significant psychological distress";
+  else if(total <= 14) interp = "Mild psychological distress";
+  else if(total <= 21) interp = "Moderate psychological distress – monitor";
+  else interp = "High psychological distress – follow-up recommended";
+  
+  interpretationSpan.textContent = interp;
+  scoreFill.style.width = `${(total/30)*100}%`;
+  
+  document.getElementById('questions').style.display = 'none';
+  nextBtn.style.display = 'none';
+  progressBar.style.width = `100%`;
+  resultDiv.style.display = 'block';
+}
+
+function restart() {
+  currentQ = -1;
+  answers = [];
+  questionDivs.forEach(q => q.classList.remove('active'));
+  document.getElementById('questions').style.display = 'block';
+  nextBtn.style.display = 'inline-block';
+  nextBtn.textContent = "Start";
+  resultDiv.style.display = 'none';
+  progressBar.style.width = `0%`;
+  scoreFill.style.width = `0%`;
+}
+</script>
+</body>
+</html>
